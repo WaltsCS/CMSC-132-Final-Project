@@ -196,29 +196,29 @@ class Program:
         if relative:
 
             # BASED
-            if mode == "000":
+            if mode == "0000":
                 return AddressingMode.based(addr_dec)
 
-            elif mode == "001":
+            elif mode == "0001":
                 return AddressingMode.based(memory.load(addr_dec))
 
-            elif mode == "010":
+            elif mode == "0010":
                 return AddressingMode.based(addr_dec)
 
-            elif mode == "011":
+            elif mode == "0011":
                 return AddressingMode.based(-addr_dec)
 
             # RELATIVE
-            elif mode == "100":
+            elif mode == "0100":
                 return AddressingMode.relative(addr_dec)
 
-            elif mode == "101":
+            elif mode == "0101":
                 return AddressingMode.relative(memory.load(addr_dec))
 
-            elif mode == "110":
+            elif mode == "0110":
                 return AddressingMode.relative(addr_dec)
 
-            elif mode == "111":
+            elif mode == "0111":
                 return AddressingMode.relative(-addr_dec)
 
         # -----------------------------
@@ -226,35 +226,35 @@ class Program:
         # -----------------------------
 
         # Register
-        if mode == "000":
+        if mode == "0000":
             return AddressingMode.register(addr_dec)
 
         # Register indirect
-        elif mode == "001":
+        elif mode == "0001":
             return AddressingMode.registerIndirect(addr_dec)
 
         # Direct
-        elif mode == "010":
+        elif mode == "0010":
             return AddressingMode.direct(addr_dec)
 
         # Indirect
-        elif mode == "011":
+        elif mode == "0011":
             return AddressingMode.indirect(addr_dec)
 
         # Indexed
-        elif mode == "100":
+        elif mode == "0100":
             return AddressingMode.indexed(addr_dec)
 
         # Indexed integer displacement
-        elif mode == "101":
+        elif mode == "0101":
             return AddressingMode.indexed(addr_dec)
 
         # Auto increment
-        elif mode == "110":
+        elif mode == "0110":
             return AddressingMode.autoinc(addr_dec)
 
         # Auto decrement
-        elif mode == "111":
+        elif mode == "0111":
             return AddressingMode.autodec(addr_dec)
 
     @classmethod
@@ -392,11 +392,12 @@ class Program:
             # ------------------------------------------------
 
             pc_addr = variable.load("PC")
+            ir_addr = variable.load("IR")
 
             pc = register.load(pc_addr)
-            register.store(pc_addr, pc + 1)
 
-            register.store(
-                variable.load("IR"),
-                register.load(pc_addr)
-            )
+            # Move current PC to IR first
+            register.store(ir_addr, pc)
+
+            # Then increment PC
+            register.store(pc_addr, pc + 1)
