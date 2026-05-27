@@ -485,7 +485,6 @@ class Instruction:
 
         # Store block/function start addresses.
         # The actual normal instructions begin after all CB/CF instructions.
-        normal_start_addr = start_addr + block_count
         normal_counter = 0
 
         for line in cleaned:
@@ -496,8 +495,9 @@ class Instruction:
                 block_name = parts[1]
                 block_addr = variable.load(block_name)
 
-                # Store the address of the next normal instruction.
-                memory.store(block_addr, normal_start_addr + normal_counter)
+                # Store the original/pre-relocation instruction address.
+                # The CB/CF instruction itself will add BR later during execution.
+                memory.store(block_addr, start_addr + normal_counter)
 
             elif op not in ["CB", "CF"]:
                 normal_counter += 1
