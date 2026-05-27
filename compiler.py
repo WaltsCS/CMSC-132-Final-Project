@@ -198,6 +198,23 @@ class Instruction:
         if operand.startswith("(") and operand.endswith(")"):
             inner = operand[1:-1].strip()
 
+            # Indexed addressing syntax: (X+displacement) or (X-displacement)
+            # Example: (X+0), (X+5), (X-2)
+            compact_inner = inner.replace(" ", "").upper()
+
+            if compact_inner.startswith("X"):
+                displacement_text = compact_inner[1:]
+
+                if displacement_text == "":
+                    displacement = 0
+                else:
+                    displacement = int(displacement_text)
+
+                return (
+                    ADDR_MODE["INDEXED"]
+                    + Instruction._addr_to_bin(displacement)
+                )
+
             # Auto-increment: (R1+)
             if inner.endswith("+"):
                 reg_name = inner[:-1].strip()
@@ -253,6 +270,26 @@ class Instruction:
 
         operand = str(operand).strip()
 
+        # Parenthesized based/relative syntax:
+        # (Y+5) = based addressing with integer displacement 5
+        # (Z+3) = relative addressing with integer displacement 3
+        if operand.startswith("(") and operand.endswith(")"):
+            inner = operand[1:-1].strip().replace(" ", "").upper()
+
+            if inner.startswith("Y"):
+                displacement_text = inner[1:]
+                displacement = 0 if displacement_text == "" else int(displacement_text)
+
+                mode = "0010" if displacement >= 0 else "0011"
+                return mode + Instruction._addr_to_bin(abs(displacement))
+
+            if inner.startswith("Z"):
+                displacement_text = inner[1:]
+                displacement = 0 if displacement_text == "" else int(displacement_text)
+
+                mode = "0110" if displacement >= 0 else "0111"
+                return mode + Instruction._addr_to_bin(abs(displacement))
+
         is_based = relative_type == "based"
 
         if Instruction._is_number(operand):
@@ -275,6 +312,16 @@ class Instruction:
         # Memory displacement
         mode = "0001" if is_based else "0101"
         return mode + Instruction._addr_to_bin(addr)
+    
+    @staticmethod
+    def is_based_or_relative_operand(operand):
+        operand = str(operand).strip()
+
+        if operand.startswith("(") and operand.endswith(")"):
+            inner = operand[1:-1].strip().replace(" ", "").upper()
+            return inner.startswith("Y") or inner.startswith("Z")
+
+        return False
 
     # ------------------------------------------------------------
     # Instruction encoding
@@ -404,7 +451,15 @@ class Instruction:
                 raise ValueError(f"{op} requires two operands.")
 
             op1 = Instruction.encodeOp(parts[1])
-            op2 = Instruction.encodeOp(parts[2])
+
+            # If operand 2 uses based/relative syntax like (Y+5) or (Z+3),
+            # encode it using encodeRelativeOp() and set rb = 1.
+            if Instruction.is_based_or_relative_operand(parts[2]):
+                rb = "1"
+                op2 = Instruction.encodeRelativeOp(parts[2])
+            else:
+                rb = "0"
+                op2 = Instruction.encodeOp(parts[2])
 
         inscode = opcode + ib + op1 + rb + op2 + extra
 

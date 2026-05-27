@@ -421,3 +421,96 @@ print("Actual effective address   =", result[0])
 print("Expected value             = 40.0")
 print("Actual value               =", result[1])
 print()
+
+
+# ------------------------------------------------------------
+# Test 21: Indexed addressing through compiler syntax
+# ------------------------------------------------------------
+
+reset_runtime()
+
+register.store(variable.load("XR"), 77)
+memory.store(77, 10)
+
+try:
+    run_program([
+        "ADD A (X+0)",
+        "EOP"
+    ])
+
+    print("Test 21 - Indexed addressing through compiler syntax")
+    print("Expected A = 10.0 if compiler supports (X+0)")
+    print("Actual A   =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 21 - Indexed addressing through compiler syntax")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
+
+
+# ------------------------------------------------------------
+# Test 22: Based addressing through compiler syntax
+# ------------------------------------------------------------
+
+reset_runtime()
+
+from run import Program
+
+try:
+    p = Program([
+        "ADD A (Y+5)",
+        "EOP"
+    ])
+
+    # Set BR after compilation, because encodeProgram() stores block_count in BR.
+    register.store(variable.load("BR"), 70)
+    memory.store(75, 30)
+
+    p.run()
+
+    print("Test 22 - Based addressing through compiler syntax")
+    print("Expected A = 30.0 if compiler supports (Y+5)")
+    print("Actual A   =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 22 - Based addressing through compiler syntax")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
+
+
+# ------------------------------------------------------------
+# Test 23: Relative addressing through compiler syntax
+# ------------------------------------------------------------
+
+reset_runtime()
+
+from run import Program
+
+try:
+    p = Program([
+        "ADD A (Z+3)",
+        "EOP"
+    ])
+
+    # Program starts at BR address, usually 9.
+    # First instruction is at IR = 9.
+    # PC is usually 10 while first instruction runs.
+    # So Z+3 should point to 10 + 3 = 13.
+    memory.store(13, 40)
+
+    p.run()
+
+    print("Test 23 - Relative addressing through compiler syntax")
+    print("Expected A = 40.0 if compiler supports (Z+3)")
+    print("Actual A   =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 23 - Relative addressing through compiler syntax")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
