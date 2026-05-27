@@ -433,6 +433,13 @@ class Instruction:
             - storing encoded instructions from BR address
         """
 
+        global _next_const_addr
+        _next_const_addr = CONST_POOL_START
+
+        # Clear previous constants from the constant pool.
+        for addr in range(CONST_POOL_START, 128):
+            memory.store(addr, 0)
+
         cleaned = []
         in_multiline_comment = False
 
