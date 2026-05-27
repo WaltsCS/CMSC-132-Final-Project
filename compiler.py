@@ -198,6 +198,27 @@ class Instruction:
         if operand.startswith("(") and operand.endswith(")"):
             inner = operand[1:-1].strip()
 
+            # Indexed addressing syntax: (X+displacement) or (X-displacement)
+            # Example: (X+0), (X+5), (X-2)
+            compact_inner = inner.replace(" ", "").upper()
+
+            if compact_inner.startswith("X"):
+                displacement_text = compact_inner[1:]
+
+                if displacement_text == "":
+                    displacement = 0
+                else:
+                    displacement = int(displacement_text)
+
+                # Positive indexed displacement uses INDEXED.
+                # Negative indexed displacement uses INDEXED_INT as the signed variant.
+                if displacement >= 0:
+                    mode = ADDR_MODE["INDEXED"]
+                else:
+                    mode = ADDR_MODE["INDEXED_INT"]
+
+                return mode + Instruction._addr_to_bin(abs(displacement))
+
             # Auto-increment: (R1+)
             if inner.endswith("+"):
                 reg_name = inner[:-1].strip()
@@ -253,6 +274,26 @@ class Instruction:
 
         operand = str(operand).strip()
 
+        # Parenthesized based/relative syntax:
+        # (Y+5) = based addressing with integer displacement 5
+        # (Z+3) = relative addressing with integer displacement 3
+        if operand.startswith("(") and operand.endswith(")"):
+            inner = operand[1:-1].strip().replace(" ", "").upper()
+
+            if inner.startswith("Y"):
+                displacement_text = inner[1:]
+                displacement = 0 if displacement_text == "" else int(displacement_text)
+
+                mode = "0010" if displacement >= 0 else "0011"
+                return mode + Instruction._addr_to_bin(abs(displacement))
+
+            if inner.startswith("Z"):
+                displacement_text = inner[1:]
+                displacement = 0 if displacement_text == "" else int(displacement_text)
+
+                mode = "0110" if displacement >= 0 else "0111"
+                return mode + Instruction._addr_to_bin(abs(displacement))
+
         is_based = relative_type == "based"
 
         if Instruction._is_number(operand):
@@ -275,6 +316,16 @@ class Instruction:
         # Memory displacement
         mode = "0001" if is_based else "0101"
         return mode + Instruction._addr_to_bin(addr)
+    
+    @staticmethod
+    def is_based_or_relative_operand(operand):
+        operand = str(operand).strip()
+
+        if operand.startswith("(") and operand.endswith(")"):
+            inner = operand[1:-1].strip().replace(" ", "").upper()
+            return inner.startswith("Y") or inner.startswith("Z")
+
+        return False
 
     # ------------------------------------------------------------
     # Instruction encoding
@@ -404,7 +455,15 @@ class Instruction:
                 raise ValueError(f"{op} requires two operands.")
 
             op1 = Instruction.encodeOp(parts[1])
-            op2 = Instruction.encodeOp(parts[2])
+
+            # If operand 2 uses based/relative syntax like (Y+5) or (Z+3),
+            # encode it using encodeRelativeOp() and set rb = 1.
+            if Instruction.is_based_or_relative_operand(parts[2]):
+                rb = "1"
+                op2 = Instruction.encodeRelativeOp(parts[2])
+            else:
+                rb = "0"
+                op2 = Instruction.encodeOp(parts[2])
 
         inscode = opcode + ib + op1 + rb + op2 + extra
 
@@ -432,6 +491,13 @@ class Instruction:
             - moving CB/CF instructions to the start
             - storing encoded instructions from BR address
         """
+
+        global _next_const_addr
+        _next_const_addr = CONST_POOL_START
+
+        # Clear previous constants from the constant pool.
+        for addr in range(CONST_POOL_START, 128):
+            memory.store(addr, 0)
 
         cleaned = []
         in_multiline_comment = False
@@ -478,7 +544,6 @@ class Instruction:
 
         # Store block/function start addresses.
         # The actual normal instructions begin after all CB/CF instructions.
-        normal_start_addr = start_addr + block_count
         normal_counter = 0
 
         for line in cleaned:
@@ -489,8 +554,9 @@ class Instruction:
                 block_name = parts[1]
                 block_addr = variable.load(block_name)
 
-                # Store the address of the next normal instruction.
-                memory.store(block_addr, normal_start_addr + normal_counter)
+                # Store the original/pre-relocation instruction address.
+                # The CB/CF instruction itself will add BR later during execution.
+                memory.store(block_addr, start_addr + normal_counter)
 
             elif op not in ["CB", "CF"]:
                 normal_counter += 1

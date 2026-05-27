@@ -247,7 +247,7 @@ class Program:
 
         # Indexed integer displacement
         elif mode == "0101":
-            return AddressingMode.indexed(addr_dec)
+            return AddressingMode.indexed(-addr_dec)
 
         # Auto increment
         elif mode == "0110":
@@ -345,10 +345,20 @@ class Program:
 
                     if jump:
 
-                        register.store(
-                            variable.load("PC"),
-                            op1[0]
-                        )
+                        # For JMP/JEQ/JNE/etc., op1 is usually B1-B8 or F1-F4.
+                        # op1[0] is the memory address of B1/F1.
+                        # op1[1] is the actual target instruction address stored in B1/F1.
+                        target = op1[1] if type(op1) == tuple else op1
+
+                        ir_addr = variable.load("IR")
+                        pc_addr = variable.load("PC")
+
+                        # Jump directly to target on the next fetch.
+                        register.store(ir_addr, target)
+                        register.store(pc_addr, target + 1)
+
+                        # Skip the normal PC/IR update at the bottom of the loop.
+                        continue
 
             # ------------------------------------------------
             # WRITE
@@ -385,7 +395,10 @@ class Program:
 
             if execute_bit == "0" and write_bit == "0":
 
-                print(op1)
+                if type(op1) == tuple:
+                    print(op1[1])
+                else:
+                    print(op1)
 
             # ------------------------------------------------
             # Increment PC / IR
