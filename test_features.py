@@ -332,8 +332,92 @@ print("Expected ACC = 10.0 after RET A")
 print("Actual ACC   =", register.load(variable.load("ACC")))
 print()
 
-# print("Debug F1 =", memory.load(variable.load("F1")))
-# print("Debug CR =", register.load(variable.load("CR")))
-# print("Debug PC =", register.load(variable.load("PC")))
-# print("Debug IR =", register.load(variable.load("IR")))
-# print()
+
+# ------------------------------------------------------------
+# Test 17: ADDPC / Relative addressing
+# ------------------------------------------------------------
+
+run_program([
+    "ADDPC A 1",   # A should receive value from address PC + 1
+    "MOV B 20",
+    "EOP"
+])
+
+print("Test 17 - ADDPC / Relative addressing")
+print("Expected: depends on current ADDPC behavior")
+print("Actual A =", memory.load(variable.load("A")))
+print("Actual B =", memory.load(variable.load("B")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 18: Indexed addressing
+# ------------------------------------------------------------
+
+reset_runtime()
+
+# Manually prepare array-like memory.
+# XR = 77, so indexed displacement 0 should point to memory[77].
+register.store(variable.load("XR"), 77)
+memory.store(77, 10)
+
+program = [
+    "ADD A 0",   # simple program just to trigger normal setup
+    "EOP"
+]
+
+# Directly test the addressing mode method.
+from addressing import AddressingMode
+
+result = AddressingMode.indexed(0)
+
+print("Test 18 - Indexed addressing direct method")
+print("Expected effective address = 77.0")
+print("Actual effective address   =", result[0])
+print("Expected value             = 10.0")
+print("Actual value               =", result[1])
+print()
+
+
+# ------------------------------------------------------------
+# Test 19: Based addressing direct method
+# ------------------------------------------------------------
+
+reset_runtime()
+
+from addressing import AddressingMode
+
+# BR = 70, displacement = 5, so effective address should be 75.
+register.store(variable.load("BR"), 70)
+memory.store(75, 30)
+
+result = AddressingMode.based(5)
+
+print("Test 19 - Based addressing direct method")
+print("Expected effective address = 75.0")
+print("Actual effective address   =", result[0])
+print("Expected value             = 30.0")
+print("Actual value               =", result[1])
+print()
+
+
+# ------------------------------------------------------------
+# Test 20: Relative addressing direct method
+# ------------------------------------------------------------
+
+reset_runtime()
+
+from addressing import AddressingMode
+
+# PC = 80, displacement = 3, so effective address should be 83.
+register.store(variable.load("PC"), 80)
+memory.store(83, 40)
+
+result = AddressingMode.relative(3)
+
+print("Test 20 - Relative addressing direct method")
+print("Expected effective address = 83.0")
+print("Actual effective address   =", result[0])
+print("Expected value             = 40.0")
+print("Actual value               =", result[1])
+print()
