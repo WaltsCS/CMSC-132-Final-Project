@@ -53,25 +53,23 @@ class AddressingMode:
 
     @staticmethod
     def based(offset):
-        """Based: effective address = BR + offset.
+        """Based: value at BR + offset.
 
         offset : int (caller decides sign).
-        Returns (address, content, 'memory').
+        Returns value only (always on second operand).
         """
         base = Access.data('BR', ['var', 'reg'])
-        address = int(base) + offset
-        return (address, mem.load(address), 'memory')
+        return mem.load(int(base) + offset)
 
     @staticmethod
     def relative(offset):
-        """Relative: effective address = PC + offset.
+        """Relative: value at PC + offset.
 
         offset : int (caller decides sign).
-        Returns (address, content, 'memory').
+        Returns value only (always on second operand).
         """
         base = Access.data('PC', ['var', 'reg'])
-        address = int(base) + offset
-        return (address, mem.load(address), 'memory')
+        return mem.load(int(base) + offset)
 
     # ==================================================================
     # Dual-operand modes (appear on either operand)

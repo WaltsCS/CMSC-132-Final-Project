@@ -394,10 +394,8 @@ memory.store(75, 30)
 result = AddressingMode.based(5)
 
 print("Test 19 - Based addressing direct method")
-print("Expected effective address = 75.0")
-print("Actual effective address   =", result[0])
 print("Expected value             = 30.0")
-print("Actual value               =", result[1])
+print("Actual value               =", result)
 print()
 
 
@@ -416,10 +414,8 @@ memory.store(83, 40)
 result = AddressingMode.relative(3)
 
 print("Test 20 - Relative addressing direct method")
-print("Expected effective address = 83.0")
-print("Actual effective address   =", result[0])
 print("Expected value             = 40.0")
-print("Actual value               =", result[1])
+print("Actual value               =", result)
 print()
 
 

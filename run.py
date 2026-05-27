@@ -49,13 +49,13 @@ class Program:
 
             exc = Except("Division By Zero")
 
-            # 0 / 0
+            # 0 / 0  → Infinity  (both operands zero)
             if value == 0:
-                exc.setReturn("undefined")
-
-            # x / 0
-            else:
                 exc.setReturn("Infinity")
+
+            # x / 0  → undefined  (only operand 2 is zero)
+            else:
+                exc.setReturn("undefined")
 
             return exc
 
