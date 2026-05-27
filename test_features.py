@@ -126,3 +126,42 @@ print("Actual A    =", memory.load(variable.load("A")))
 print("Expected R1 = 2.0")
 print("Actual R1   =", register.load(variable.load("R1")))
 print()
+
+
+# ------------------------------------------------------------
+# Test 7: Auto-decrement addressing
+# ------------------------------------------------------------
+
+run_program([
+    "MOV R1 2",      # R1 points after A, so decrement should point to A
+    "MOV A 10",
+    "ADD (R1-) 5",   # R1 = R1 - 1 first, then use memory[R1]
+    "EOP"
+])
+
+print("Test 7 - Auto-decrement addressing")
+print("Expected A  = 15.0")
+print("Actual A    =", memory.load(variable.load("A")))
+print("Expected R1 = 1.0")
+print("Actual R1   =", register.load(variable.load("R1")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 8: CMP + JEQ
+# ------------------------------------------------------------
+
+run_program([
+    "MOV A 5",
+    "CMP A",
+    "JEQ B1",
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 8 - CMP + JEQ")
+print("Expected A = 10.0 if jump works")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
