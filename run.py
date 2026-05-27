@@ -247,7 +247,7 @@ class Program:
 
         # Indexed integer displacement
         elif mode == "0101":
-            return AddressingMode.indexed(addr_dec)
+            return AddressingMode.indexed(-addr_dec)
 
         # Auto increment
         elif mode == "0110":
@@ -395,7 +395,10 @@ class Program:
 
             if execute_bit == "0" and write_bit == "0":
 
-                print(op1)
+                if type(op1) == tuple:
+                    print(op1[1])
+                else:
+                    print(op1)
 
             # ------------------------------------------------
             # Increment PC / IR

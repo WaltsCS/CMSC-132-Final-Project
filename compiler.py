@@ -210,10 +210,14 @@ class Instruction:
                 else:
                     displacement = int(displacement_text)
 
-                return (
-                    ADDR_MODE["INDEXED"]
-                    + Instruction._addr_to_bin(displacement)
-                )
+                # Positive indexed displacement uses INDEXED.
+                # Negative indexed displacement uses INDEXED_INT as the signed variant.
+                if displacement >= 0:
+                    mode = ADDR_MODE["INDEXED"]
+                else:
+                    mode = ADDR_MODE["INDEXED_INT"]
+
+                return mode + Instruction._addr_to_bin(abs(displacement))
 
             # Auto-increment: (R1+)
             if inner.endswith("+"):

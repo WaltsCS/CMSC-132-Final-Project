@@ -514,3 +514,85 @@ except Exception as e:
     print("Compiler/runtime error:")
     print(type(e).__name__, ":", e)
     print()
+
+
+# ------------------------------------------------------------
+# Test 24: Negative indexed displacement through compiler syntax
+# ------------------------------------------------------------
+
+reset_runtime()
+
+register.store(variable.load("XR"), 78)
+memory.store(77, 15)
+
+try:
+    run_program([
+        "ADD A (X-1)",
+        "EOP"
+    ])
+
+    print("Test 24 - Negative indexed displacement")
+    print("Expected A = 15.0 if (X-1) points to memory[77]")
+    print("Actual A   =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 24 - Negative indexed displacement")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
+
+
+# ------------------------------------------------------------
+# Test 25: Negative based displacement through compiler syntax
+# ------------------------------------------------------------
+
+reset_runtime()
+
+from run import Program
+
+try:
+    p = Program([
+        "ADD A (Y-5)",
+        "EOP"
+    ])
+
+    # Set BR after compilation because encodeProgram() overwrites BR.
+    register.store(variable.load("BR"), 80)
+    memory.store(75, 25)
+
+    p.run()
+
+    print("Test 25 - Negative based displacement")
+    print("Expected A = 25.0 if (Y-5) points to memory[75]")
+    print("Actual A   =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 25 - Negative based displacement")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
+
+
+# ------------------------------------------------------------
+# Test 26: PRNT instruction
+# ------------------------------------------------------------
+
+try:
+    run_program([
+        "MOV A 42",
+        "PRNT A",
+        "EOP"
+    ])
+
+    print("Test 26 - PRNT")
+    print("Expected: console should print the value of A, likely 42.0")
+    print("Actual A =", memory.load(variable.load("A")))
+    print()
+
+except Exception as e:
+    print("Test 26 - PRNT")
+    print("Compiler/runtime error:")
+    print(type(e).__name__, ":", e)
+    print()
