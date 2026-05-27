@@ -23,7 +23,9 @@ def reset_runtime():
 def run_program(program):
     reset_runtime()
     p = Program(program)
+    print("DEBUG before run: B1 =", memory.load(variable.load("B1")))
     p.run()
+    print("DEBUG after run: B1 =", memory.load(variable.load("B1")))
 
 
 # ------------------------------------------------------------
@@ -163,5 +165,108 @@ run_program([
 
 print("Test 8 - CMP + JEQ")
 print("Expected A = 10.0 if jump works")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 9: CMP + JNE should NOT jump when JR == 0
+# ------------------------------------------------------------
+
+run_program([
+    "MOV JR 5",
+    "MOV A 5",
+    "CMP A",       # JR = 5 - 5 = 0
+    "JNE B1",      # should NOT jump
+    "MOV A 10",
+    "EOP",
+    "CB B1",
+    "MOV A 99",
+    "EOP"
+])
+
+print("Test 9 - CMP + JNE")
+print("Expected A = 10.0 if JNE does NOT jump when JR == 0")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 10: CMP + JGT should jump when JR > 0
+# ------------------------------------------------------------
+
+run_program([
+    "MOV JR 10",
+    "MOV A 5",
+    "CMP A",       # JR = 10 - 5 = 5
+    "JGT B1",      # should jump
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 10 - CMP + JGT")
+print("Expected A = 10.0 if JGT jumps when JR > 0")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 11: CMP + JLT should jump when JR < 0
+# ------------------------------------------------------------
+
+run_program([
+    "MOV JR 2",
+    "MOV A 5",
+    "CMP A",       # JR = 2 - 5 = -3
+    "JLT B1",      # should jump
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 11 - CMP + JLT")
+print("Expected A = 10.0 if JLT jumps when JR < 0")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 12: JMP unconditional
+# ------------------------------------------------------------
+
+run_program([
+    "JMP B1",
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 12 - JMP")
+print("Expected A = 10.0 if JMP skips MOV A 99")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 13: Comments in encodeProgram
+# ------------------------------------------------------------
+
+run_program([
+    "x this is a single-line comment",
+    "MOV A 5",
+    "z",
+    "MOV A 99",
+    "ADD A 99",
+    "z",
+    "ADD A 2",
+    "EOP"
+])
+
+print("Test 13 - Comments")
+print("Expected A = 7.0 if comments are skipped")
 print("Actual A   =", memory.load(variable.load("A")))
 print()
