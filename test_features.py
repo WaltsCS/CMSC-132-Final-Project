@@ -23,9 +23,7 @@ def reset_runtime():
 def run_program(program):
     reset_runtime()
     p = Program(program)
-    print("DEBUG before run: B1 =", memory.load(variable.load("B1")))
     p.run()
-    print("DEBUG after run: B1 =", memory.load(variable.load("B1")))
 
 
 # ------------------------------------------------------------
@@ -270,3 +268,72 @@ print("Test 13 - Comments")
 print("Expected A = 7.0 if comments are skipped")
 print("Actual A   =", memory.load(variable.load("A")))
 print()
+
+
+# ------------------------------------------------------------
+# Test 14: CMP + JLE
+# ------------------------------------------------------------
+
+run_program([
+    "MOV JR 5",
+    "MOV A 5",
+    "CMP A",       # JR = 5 - 5 = 0
+    "JLE B1",      # should jump because JR <= 0
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 14 - CMP + JLE")
+print("Expected A = 10.0 if JLE jumps when JR == 0")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 15: CMP + JGE
+# ------------------------------------------------------------
+
+run_program([
+    "MOV JR 10",
+    "MOV A 5",
+    "CMP A",       # JR = 10 - 5 = 5
+    "JGE B1",      # should jump because JR >= 0
+    "MOV A 99",
+    "CB B1",
+    "MOV A 10",
+    "EOP"
+])
+
+print("Test 15 - CMP + JGE")
+print("Expected A = 10.0 if JGE jumps when JR > 0")
+print("Actual A   =", memory.load(variable.load("A")))
+print()
+
+
+# ------------------------------------------------------------
+# Test 16: CF + CALL + RET
+# ------------------------------------------------------------
+
+run_program([
+    "CALL F1",
+    "EOP",
+    "CF F1",
+    "MOV A 10",
+    "RET A",
+    "FUNC"
+])
+
+print("Test 16 - CF + CALL + RET")
+print("Expected A   = 10.0 after function body")
+print("Actual A     =", memory.load(variable.load("A")))
+print("Expected ACC = 10.0 after RET A")
+print("Actual ACC   =", register.load(variable.load("ACC")))
+print()
+
+# print("Debug F1 =", memory.load(variable.load("F1")))
+# print("Debug CR =", register.load(variable.load("CR")))
+# print("Debug PC =", register.load(variable.load("PC")))
+# print("Debug IR =", register.load(variable.load("IR")))
+# print()
