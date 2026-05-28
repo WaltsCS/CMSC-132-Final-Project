@@ -1,0 +1,5 @@
+MOV A 7
+MOV B 3
+ADD A B
+PRNT A
+EOP
