@@ -25,11 +25,12 @@ class Access:
         return current
 
     @staticmethod
-    def store(kind, address, value):
+    def store(typ, addr, value):
         """Route a write to the correct storage ('register' or 'memory')."""
-        pool = {'register': reg, 'memory': mem}.get(kind)
-        if pool is not None:
-            pool.store(address, value)
+        if typ == 'register':
+            reg.store(addr, value)
+        else:
+            mem.store(addr, value)
 
 
 # ---------------------------------------------------------------------------

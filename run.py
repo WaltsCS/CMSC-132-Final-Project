@@ -202,15 +202,8 @@ class Program:
         # Split destination into storage type and address
         storage, addr = dest
 
-        # Write into register
-        if storage == "register":
-
-            register.store(addr, src)
-
-        # Write into memory
-        else:
-
-            memory.store(addr, src)
+        # Write via addressing helper
+        Access.store(storage, addr, src)
 
     # -----------------------------------------------------
     # Execute Operations
